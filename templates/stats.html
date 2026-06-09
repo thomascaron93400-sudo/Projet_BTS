@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Statistiques — Dashboard RFID{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Statistiques</h1>
+    <p>Analyse détaillée de l'activité du système</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card info">
+        <div class="stat-label">Total scans</div>
+        <div class="stat-value">{{ stats.total_scans }}</div>
+    </div>
+    <div class="stat-card success">
+        <div class="stat-label">Déclenchements</div>
+        <div class="stat-value">{{ stats.total_declenchements }}</div>
+    </div>
+    <div class="stat-card danger">
+        <div class="stat-label">Taux de refus</div>
+        <div class="stat-value">{{ stats.taux_refus }}%</div>
+    </div>
+    <div class="stat-card warning">
+        <div class="stat-label">Badges actifs</div>
+        <div class="stat-value">{{ stats.badges_actifs }} / {{ stats.total_badges }}</div>
+    </div>
+</div>
+
+<div class="cards-row">
+    <div class="card">
+        <h2>Activité par heure (0h-23h)</h2>
+        <canvas id="chartHeures" height="180"></canvas>
+    </div>
+    <div class="card">
+        <h2>Activité par jour de la semaine</h2>
+        <canvas id="chartJours" height="180"></canvas>
+    </div>
+</div>
+
+<div class="card">
+    <h2>7 derniers jours</h2>
+    <canvas id="chart7j" height="80"></canvas>
+</div>
+
+<div class="card">
+    <h2>Top 10 des badges les plus actifs</h2>
+    {% if top %}
+    <table class="table">
+        <thead><tr><th>Rang</th><th>UID</th><th>Nom</th><th>Scans</th></tr></thead>
+        <tbody>
+        {% for b in top %}
+            <tr>
+                <td>#{{ loop.index }}</td>
+                <td><span class="uid">{{ b.uid }}</span></td>
+                <td>{{ b.nom }}</td>
+                <td><strong>{{ b.nb_scans }}</strong></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#95a5a6; text-align:center; padding:20px;">Pas encore de données.</p>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Données injectées depuis Flask via tojson
+const heures = {{ activite_heures | tojson }};
+const jours  = {{ activite_jours  | tojson }};
+const sept_j = {{ activite_7j     | tojson }};
+
+// Graphique heures (barres)
+new Chart(document.getElementById('chartHeures'), {
+    type: 'bar',
+    data: {
+        labels: Object.keys(heures).map(h => h + 'h'),
+        datasets: [{
+            label: 'Scans',
+            data: Object.values(heures),
+            backgroundColor: '#3498db'
+        }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+});
+
+// Graphique jours (barres horizontales)
+const nomsJours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+new Chart(document.getElementById('chartJours'), {
+    type: 'bar',
+    data: {
+        labels: nomsJours,
+        datasets: [{
+            label: 'Scans',
+            data: Object.values(jours),
+            backgroundColor: '#9b59b6'
+        }]
+    },
+    options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+});
+
+// Graphique 7 derniers jours (ligne)
+new Chart(document.getElementById('chart7j'), {
+    type: 'line',
+    data: {
+        labels: sept_j.map(d => d[0]),
+        datasets: [{
+            label: 'Scans par jour',
+            data: sept_j.map(d => d[1]),
+            borderColor: '#2ecc71',
+            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+</script>
+
+{% endblock %}

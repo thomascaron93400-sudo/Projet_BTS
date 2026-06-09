@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Gestion des badges — Dashboard RFID{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Gestion des badges</h1>
+    <p>{{ badges|length }} badge(s) enregistré(s) au total</p>
+</div>
+
+<div class="card">
+    <h2>Ajouter un badge</h2>
+    <form method="POST" action="{{ url_for('badge_add') }}">
+        <div class="form-inline">
+            <div class="form-group">
+                <label>UID</label>
+                <input type="text" name="uid" required placeholder="ex : 5E:ED:DB:6F" pattern="[0-9A-Fa-f:]+">
+            </div>
+            <div class="form-group">
+                <label>Nom</label>
+                <input type="text" name="nom" required placeholder="ex : Badge Ahmed">
+            </div>
+            <div class="form-group">
+                <label>Note (optionnel)</label>
+                <input type="text" name="note" placeholder="ex : Badge principal">
+            </div>
+            <div class="form-group" style="flex: 0;">
+                <button type="submit" class="btn btn-primary">Ajouter</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Liste des badges</h2>
+
+    {% if badges %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>UID</th>
+                <th>Nom</th>
+                <th>Note</th>
+                <th>Ajouté le</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for b in badges %}
+            <tr>
+                <td><span class="uid">{{ b.uid }}</span></td>
+                <td>{{ b.nom }}</td>
+                <td>{{ b.note or "—" }}</td>
+                <td>{{ b.date_ajout[:16] if b.date_ajout else "—" }}</td>
+                <td>
+                    {% if b.autorise %}
+                        <span class="badge badge-success">Actif</span>
+                    {% else %}
+                        <span class="badge badge-danger">Désactivé</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('badge_toggle', badge_id=b.id) }}" style="display:inline;">
+                        <button type="submit" class="btn btn-small {% if b.autorise %}btn-danger{% else %}btn-primary{% endif %}">
+                            {% if b.autorise %}Désactiver{% else %}Activer{% endif %}
+                        </button>
+                    </form>
+
+                    <form method="POST" action="{{ url_for('badge_delete', badge_id=b.id) }}" style="display:inline;"
+                          onsubmit="return confirm('Supprimer définitivement le badge « {{ b.nom }} » ?');">
+                        <button type="submit" class="btn btn-small btn-danger">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p style="color: #95a5a6; text-align: center; padding: 30px;">
+            Aucun badge enregistré. Utilise le formulaire ci-dessus pour en ajouter un.
+        </p>
+    {% endif %}
+</div>
+
+{% endblock %}

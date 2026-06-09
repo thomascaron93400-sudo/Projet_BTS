@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Historique — Dashboard RFID{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Historique des passages</h1>
+    <p>{{ passages|length }} passage(s) affichés (sur les {{ limit }} derniers)</p>
+</div>
+
+<div class="card">
+    <h2>Filtres</h2>
+    <form method="GET" action="{{ url_for('historique_page') }}">
+        <div class="form-inline">
+            <div class="form-group">
+                <label>UID contient</label>
+                <input type="text" name="uid" value="{{ uid_filter or '' }}" placeholder="ex : 5E:ED">
+            </div>
+            <div class="form-group">
+                <label>Statut</label>
+                <select name="statut">
+                    <option value="" {% if not statut_filter %}selected{% endif %}>Tous</option>
+                    <option value="oui" {% if statut_filter == 'oui' %}selected{% endif %}>Autorisés uniquement</option>
+                    <option value="non" {% if statut_filter == 'non' %}selected{% endif %}>Refusés uniquement</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Limite</label>
+                <select name="limit">
+                    <option value="50"  {% if limit == 50  %}selected{% endif %}>50 derniers</option>
+                    <option value="100" {% if limit == 100 %}selected{% endif %}>100 derniers</option>
+                    <option value="500" {% if limit == 500 %}selected{% endif %}>500 derniers</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 0;">
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+            </div>
+            <div class="form-group" style="flex: 0;">
+                <a href="{{ url_for('historique_page') }}" class="btn btn-small">Réinitialiser</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>Résultats</h2>
+    {% if passages %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date et heure</th>
+                <th>UID</th>
+                <th>Nom</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in passages %}
+            <tr>
+                <td>{{ p.timestamp[:19] }}</td>
+                <td><span class="uid">{{ p.uid }}</span></td>
+                <td>{{ p.nom }}</td>
+                <td>
+                    {% if p.declenche %}
+                        <span class="badge badge-success">Déclenché</span>
+                    {% elif p.autorise %}
+                        <span class="badge badge-warning">Autorisé (Win KO)</span>
+                    {% else %}
+                        <span class="badge badge-danger">Refusé</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p style="color: #95a5a6; text-align: center; padding: 30px;">
+            Aucun passage ne correspond aux filtres.
+        </p>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil — Dashboard RFID{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Tableau de bord</h1>
+    <p>Vue d'ensemble du système RFID — {{ stats.total_scans }} scan(s) au total</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card info">
+        <div class="stat-label">Total scans</div>
+        <div class="stat-value">{{ stats.total_scans }}</div>
+        <div class="stat-detail">Toutes tentatives confondues</div>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-label">Déclenchements</div>
+        <div class="stat-value">{{ stats.total_declenchements }}</div>
+        <div class="stat-detail">Programmes lancés sur le PC</div>
+    </div>
+
+    <div class="stat-card danger">
+        <div class="stat-label">Refus</div>
+        <div class="stat-value">{{ stats.total_refus }}</div>
+        <div class="stat-detail">{{ stats.taux_refus }}% du total</div>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-label">Badges enregistrés</div>
+        <div class="stat-value">{{ stats.total_badges }}</div>
+        <div class="stat-detail">{{ stats.badges_actifs }} actif(s)</div>
+    </div>
+</div>
+
+<div class="cards-row">
+
+    <div class="card">
+        <h2>Derniers passages</h2>
+        {% if derniers_passages %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Heure</th>
+                    <th>Nom</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in derniers_passages %}
+                <tr>
+                    <td>{{ p.timestamp[:19] }}</td>
+                    <td>{{ p.nom }}</td>
+                    <td>
+                        {% if p.declenche %}
+                            <span class="badge badge-success">Déclenché</span>
+                        {% elif p.autorise %}
+                            <span class="badge badge-warning">Autorisé (Win KO)</span>
+                        {% else %}
+                            <span class="badge badge-danger">Refusé</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p style="color: #95a5a6; text-align: center; padding: 20px;">
+                Aucun passage enregistré pour l'instant.
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Top 5 des badges les plus actifs</h2>
+        {% if top %}
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Rang</th>
+                    <th>Nom</th>
+                    <th>Scans</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for b in top %}
+                <tr>
+                    <td><strong>#{{ loop.index }}</strong></td>
+                    <td>{{ b.nom }}<br><span class="uid">{{ b.uid }}</span></td>
+                    <td><strong>{{ b.nb_scans }}</strong></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p style="color: #95a5a6; text-align: center; padding: 20px;">
+                Pas encore assez de données.
+            </p>
+        {% endif %}
+    </div>
+
+</div>
+
+{% endblock %}

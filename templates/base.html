@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard RFID{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    {% if session.get('user_id') %}
+    <nav class="navbar">
+        <div class="nav-brand">
+            <span class="brand-icon">📡</span>
+            <span>RFID Dashboard</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('dashboard') }}" class="{% if request.endpoint == 'dashboard' %}active{% endif %}">Accueil</a></li>
+            <li><a href="{{ url_for('badges_page') }}" class="{% if request.endpoint == 'badges_page' %}active{% endif %}">Badges</a></li>
+            <li><a href="{{ url_for('historique_page') }}" class="{% if request.endpoint == 'historique_page' %}active{% endif %}">Historique</a></li>
+            <li><a href="{{ url_for('stats_page') }}" class="{% if request.endpoint == 'stats_page' %}active{% endif %}">Statistiques</a></li>
+        </ul>
+        <div class="nav-user">
+            <span>👤 {{ session.username }}</span>
+            <a href="{{ url_for('logout') }}" class="btn-logout">Déconnexion</a>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-container">
+                {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+
+    </main>
+
+    <footer class="footer">
+        <p>Projet BTS — Système RFID — Ahmed</p>
+    </footer>
+
+</body>
+</html>
